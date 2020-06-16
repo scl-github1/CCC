@@ -44,9 +44,9 @@
 //			}
 //		}
 //	}
-//	m = GetMouseMsg();
 //	while (1)
 //	{
+//		m = GetMouseMsg();
 //		if (m.uMsg == WM_LBUTTONDOWN)
 //		{
 //			char s[24];

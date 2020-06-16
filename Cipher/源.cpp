@@ -19,65 +19,94 @@ typedef struct cipher
 } cip;
 cip p;//明文
 cip c;//密文
-int mode[ROOMSHOW] = { 0 };
-//int getopt()
-//{
-//	initgraph(1000, 500);
-//	MOUSEMSG m;
-//	int i, j, w = 1;
-//	int x, y, opt = 0;
-//	char k[5];
-//	setfillcolor(RED);
-//	solidcircle(700, 270, 20);
-//	outtextxy(740, 270, "已使用");
-//	setfillcolor(GREEN);
-//	solidcircle(850, 270, 20);
-//	outtextxy(890, 270, "未使用");
-//	rectangle(100, 300, 300, 400);
-//	outtextxy(150, 340, "输入一组数据");
-//	rectangle(400, 300, 600, 400);
-//	outtextxy(450, 340, "输出一组数据");
-//	rectangle(700, 300, 900, 400);
-//	outtextxy(790, 340, "退出");
-//	for (j = 20; j < 210; j += 60)
-//	{
-//		for (i = 20; i < 1000; i += 40)
-//		{
-//
-//			_itoa_s(w, k, 10);
-//			outtextxy(i - 5, j + 20, k);
-//			w++;
-//			if (mode[w - 1])
-//			{
-//				setfillcolor(RED);
-//				solidcircle(i, j, 20);
-//			}
-//			else
-//			{
-//				setfillcolor(GREEN);
-//				solidcircle(i, j, 20);
-//			}
-//		}
-//	}
-//	m = GetMouseMsg();
-//	while (1)
-//	{
-//		if (m.uMsg == WM_LBUTTONDOWN)
-//		{
-//			char s[24];
-//			x = m.x / 100;
-//			y = m.y / 100;
-//			opt = 99;
-//			closegraph();
-//			if (y == 3)
-//			{
-//				if ((x - 1) / 2 == 0) { closegraph(); return 1; }
-//				if ((x - 4) / 2 == 0) { closegraph(); return 2;}
-//				if ((x - 7) / 2 == 0) { closegraph(); return 0; }
-//			}
-//		}
-//	}
-//}
+//int mode[ROOMSHOW] = { 0 };
+int gslot = 0;
+//int offset = 0;
+int getopt(FILE* fp)
+{
+	//int mode[100] = { 0,1,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1,1,1,1,1,0,1,0,1,1,0,1,1,1,1,1,1,0,1,0,1,1,0,1,1,0,1,0,1,1,0,1,0,1,1 };
+	initgraph(1000, 500);
+	MOUSEMSG m;
+	cip ci;
+	int i, j, w = 1;
+	int x, y, opt = 0;
+	char k[5];
+	char numgslot[5];
+	char stroff[5];
+	setfillcolor(RED);
+	solidcircle(700, 270, 20);
+	outtextxy(740, 270, "已使用");
+	setfillcolor(GREEN);
+	solidcircle(850, 270, 20);
+	outtextxy(890, 270, "未使用");
+	rectangle(100, 300, 300, 400);
+	outtextxy(150, 340, "输入一组数据");
+	rectangle(400, 300, 600, 400);
+	outtextxy(450, 340, "输出一组数据");
+	rectangle(700, 300, 900, 400);
+	outtextxy(790, 340, "退出");
+	if (gslot)
+	{
+		outtextxy(100, 420, "槽位:");
+		_itoa_s(gslot, numgslot, 10);
+		outtextxy(140, 420, numgslot);
+		outtextxy(100, 440, "用户名:");
+		outtextxy(160, 440, p.id);
+		outtextxy(100, 460, "密码:");
+		outtextxy(160, 460, p.password);
+	}
+	else
+	{
+		outtextxy(160, 440, "该槽未存贮值");
+		outtextxy(160, 460, "该槽未存贮值");
+	}
+	for (j = 20; j < 210; j += 60)
+	{
+		for (i = 20; i < 1000; i += 40)
+		{
+
+			_itoa_s(w, k, 10);
+			outtextxy(i - 5, j + 20, k);
+
+			fseek(fp, (w - 1) * sizeof(cip), SEEK_SET);
+			fread(&ci, sizeof(cip), 1, fp);
+			if (ci.type)
+			{
+				setfillcolor(RED);
+				solidcircle(i, j, 20);
+				ci.type = 0;
+			}
+			else
+			{
+				setfillcolor(GREEN);
+				solidcircle(i, j, 20);
+			}
+			w++;
+		}
+	}
+	while (1)
+	{
+		m = GetMouseMsg();
+		if (m.uMsg == WM_LBUTTONDOWN)
+		{
+			char s[24];
+			x = m.x / 100;
+			y = m.y / 100;
+			opt = 99;
+			sprintf_s(s, "[%d,%d,%d]", m.x, m.y, opt);
+			outtextxy(10, 450, s);
+			if (y == 3)
+			{
+				if ((x - 1) / 2 == 0) { opt = 1; break; }
+				if ((x - 4) / 2 == 0) { opt = 2; break; }
+				if ((x - 7) / 2 == 0) { opt = 0; break; }
+			}
+			
+		}
+	}
+	closegraph();
+	return opt;
+}
 void read(cip* x, FILE* fp,int offset)
 {
 	fseek(fp, (offset - 1) * sizeof(cip), SEEK_SET);
@@ -108,25 +137,25 @@ void roomcheck(FILE* fp)
 {
 	cip x;
 	int offset;
-	for (offset = 1; offset < ROOMSHOW+1; offset++)
+	for (offset = 1; offset < ROOMSHOW + 1; offset++)
 	{
 		fseek(fp, (offset - 1) * sizeof(cip), SEEK_SET);
 		fread(&x, sizeof(cip), 1, fp);
-		mode[offset - 1] = x.type;
+		//mode[offset - 1] = x.type;
 		//printf("mode:%d", mode[offset - 1]);
-		printf("%2d",offset);
+//		printf("%2d", offset);
 		if (x.type)
 		{
-			printf("%c%c", 0xa8, 0x80);
+			//printf("%c%c", 0xa8, 0x80);
 			x.type = 0;
 		}
-		else
-		{
-			printf_s("%c%c", 0x10,0x02);
-		}
+//		else
+//		{
+//			printf_s("%c%c", 0x10, 0x02);
+//		}
 	}
 	printf("\n");
-	}
+}
 void Plaintext()
 {
 	c = p;
@@ -239,9 +268,10 @@ int decrypt(FILE* fp, int offset)
 	fseek(fp, (offset - 1) * sizeof(cip), SEEK_SET);
 	fread(&c, sizeof(cip), 1, fp);
 	//printf("type:%d", c.type);
-	if (mode[offset - 1]!=0)
+	if (c.type)
 	{
 		typ = c.type;
+		gslot = offset;
 		switch (typ)
 		{
 		case 1:
@@ -265,6 +295,7 @@ int decrypt(FILE* fp, int offset)
 	else
 	{
 		printf("该槽未存贮值");
+		gslot = 0;
 	}
 }
 int main()
@@ -278,15 +309,15 @@ int main()
 	err = fopen_s(&fp,"D:\\cipher.txt","rb+");
 	while (opt)
 	{
-		printf_s("\n------------------------密码本------------------------\n");
-		printf_s("\n--------------------空间使用情况-------------------\n");
-		roomcheck(fp);
-		printf_s("请选择功能，输入对应的数字：\n");
-		printf_s("1.输入一组账户名/密码\n");
-		//printf_s("2.从本地数据输出一组账户名/密码\n");
-		printf_s("2.从本地数据解码一组账户名/密码\n");
-		scanf_s("%d", &opt);
-		//opt=getopt();
+		//printf_s("\n------------------------密码本------------------------\n");
+		//printf_s("\n--------------------空间使用情况-------------------\n");
+		////roomcheck(fp);
+		//printf_s("请选择功能，输入对应的数字：\n");
+		//printf_s("1.输入一组账户名/密码\n");
+		////printf_s("2.从本地数据输出一组账户名/密码\n");
+		//printf_s("2.从本地数据解码一组账户名/密码\n");
+		//////scanf_s("%d", &opt);
+		opt=getopt(fp);
 		switch (opt)
 		{
 		case 1:
