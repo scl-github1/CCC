@@ -1,4 +1,1 @@
-﻿  源.cpp
-C:\Users\lenovo\OneDrive\课程资料\计算机编程实验\Cipher\源.cpp(35,7): warning C4101: “stroff”: 未引用的局部变量
-C:\Users\lenovo\OneDrive\课程资料\计算机编程实验\Cipher\源.cpp(300): warning C4715: “decrypt”: 不是所有的控件路径都返回值
-  Cipher.vcxproj -> C:\Users\lenovo\OneDrive\课程资料\计算机编程实验\Cipher\Debug\Cipher.exe
+﻿  Cipher.vcxproj -> C:\Users\lenovo\OneDrive\课程资料\计算机编程实验\Cipher\Debug\Cipher.exe

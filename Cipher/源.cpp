@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include<graphics.h>
 #include<string.h>
+#include<math.h>
 #include "gra.cpp"
 #define _CRT_SECURE_NO_WARNINGS
 #pragma warning(disable:4996)
@@ -19,15 +20,14 @@ typedef struct cipher
 } cip;
 cip p;//明文
 cip c;//密文
-//int mode[ROOMSHOW] = { 0 };
 int gslot = 0;
-//int offset = 0;
+int offset = 0;
 int getopt(FILE* fp)
 {
-	//int mode[100] = { 0,1,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1,1,1,1,1,1,1,0,1,0,1,1,0,1,1,1,1,1,1,0,1,0,1,1,0,1,1,1,1,1,1,0,1,0,1,1,0,1,1,0,1,0,1,1,0,1,0,1,1 };
 	initgraph(1000, 500);
 	MOUSEMSG m;
 	cip ci;
+	int distan;
 	int i, j, w = 1;
 	int x, y, opt = 0;
 	char k[5];
@@ -45,6 +45,8 @@ int getopt(FILE* fp)
 	outtextxy(450, 340, "输出一组数据");
 	rectangle(700, 300, 900, 400);
 	outtextxy(790, 340, "退出");
+	outtextxy(100, 250, "槽位选择：");
+
 	if (gslot)
 	{
 		outtextxy(100, 420, "槽位:");
@@ -94,6 +96,8 @@ int getopt(FILE* fp)
 			y = m.y / 100;
 			opt = 99;
 			sprintf_s(s, "[%d,%d,%d]", m.x, m.y, opt);
+			setfillcolor(BLACK);
+			solidrectangle(10, 450, 100, 480);
 			outtextxy(10, 450, s);
 			if (y == 3)
 			{
@@ -101,23 +105,40 @@ int getopt(FILE* fp)
 				if ((x - 4) / 2 == 0) { opt = 2; break; }
 				if ((x - 7) / 2 == 0) { opt = 0; break; }
 			}
-			
+			if (m.y <= 221)
+			{
+				for (j = 20; j < 210; j += 60)
+				{
+					for (i = 20; i < 1000; i += 40)
+					{
+						distan = pow(i - m.x, 2) + pow(j - m.y, 2);
+						if (distan <= 400)
+						{
+							offset = 25 * ((j - 20) / 60) + ((i - 20) / 40)+1;
+							_itoa_s(offset, stroff, 10);
+							setfillcolor(BLACK);
+							solidrectangle(200, 250, 300, 270);
+							outtextxy(200, 250, stroff);
+						}
+					}
+				}
+			}
 		}
 	}
 	closegraph();
 	return opt;
 }
-void read(cip* x, FILE* fp,int offset)
+void read(cip* x, FILE* fp)
 {
 	fseek(fp, (offset - 1) * sizeof(cip), SEEK_SET);
 	fread(x, sizeof(cip), 1, fp);
 }
-void write(cip* x, FILE* fp,int offset)
+void write(cip* x, FILE* fp)
 {
 	fseek(fp, (offset-1) * sizeof(cip), SEEK_SET);
 	fwrite(x, sizeof(cip), 1, fp);
 }
-void show(FILE* fp, int offset)
+void show(FILE* fp)
 {
 	cip x;
 	fseek(fp, (offset - 1) * sizeof(cip), SEEK_SET);
@@ -136,23 +157,15 @@ void input(cip *x)
 void roomcheck(FILE* fp)
 {
 	cip x;
-	int offset;
-	for (offset = 1; offset < ROOMSHOW + 1; offset++)
+	int offst;
+	for (offst = 1; offst < ROOMSHOW + 1; offst++)
 	{
-		fseek(fp, (offset - 1) * sizeof(cip), SEEK_SET);
+		fseek(fp, (offst - 1) * sizeof(cip), SEEK_SET);
 		fread(&x, sizeof(cip), 1, fp);
-		//mode[offset - 1] = x.type;
-		//printf("mode:%d", mode[offset - 1]);
-//		printf("%2d", offset);
 		if (x.type)
 		{
-			//printf("%c%c", 0xa8, 0x80);
 			x.type = 0;
 		}
-//		else
-//		{
-//			printf_s("%c%c", 0x10, 0x02);
-//		}
 	}
 	printf("\n");
 }
@@ -262,7 +275,7 @@ int encrypt()
 	}
 	return typ;
 }
-int decrypt(FILE* fp, int offset)
+int decrypt(FILE* fp)
 {
 	int typ; 
 	fseek(fp, (offset - 1) * sizeof(cip), SEEK_SET);
@@ -287,14 +300,14 @@ int decrypt(FILE* fp, int offset)
 			invAffine();
 			break;
 		}
-		printf_s("储存槽：%d\n", offset);
-		printf_s("用户名：%s\n", p.id);
-		printf_s("密码：%s\n", p.password);
+		//printf_s("储存槽：%d\n", offset);
+		//printf_s("用户名：%s\n", p.id);
+		//printf_s("密码：%s\n", p.password);
 		return typ;
 	}
 	else
 	{
-		printf("该槽未存贮值");
+		//printf("该槽未存贮值");
 		gslot = 0;
 	}
 }
@@ -302,37 +315,25 @@ int main()
 {
 	FILE* fp;
 	int opt=99;
-	int slot;
 	errno_t err;
 	err = fopen_s(&fp, "D:\\cipher.txt", "ab+");
 	fclose(fp);
 	err = fopen_s(&fp,"D:\\cipher.txt","rb+");
 	while (opt)
 	{
-		//printf_s("\n------------------------密码本------------------------\n");
-		//printf_s("\n--------------------空间使用情况-------------------\n");
-		////roomcheck(fp);
-		//printf_s("请选择功能，输入对应的数字：\n");
-		//printf_s("1.输入一组账户名/密码\n");
-		////printf_s("2.从本地数据输出一组账户名/密码\n");
-		//printf_s("2.从本地数据解码一组账户名/密码\n");
-		//////scanf_s("%d", &opt);
+
 		opt=getopt(fp);
 		switch (opt)
 		{
 		case 1:
 				input(&p);
-				printf_s("选择储存槽\n");
-				scanf_s("%d", &slot);
 				c.type = 0;
 				encrypt();
-				write(&c,fp,slot);
+				write(&c,fp);
 				printf_s("数据已储存\n");
 					break;
 		case 2:
-			printf_s("选择储存槽\n");
-			scanf_s("%d", &slot);
-			decrypt(fp,slot);
+			decrypt(fp);
 			break;
 		}
 	}

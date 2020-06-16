@@ -139,10 +139,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="源.cpp" />
-    <ClCompile Include="gra.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="crypt.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
